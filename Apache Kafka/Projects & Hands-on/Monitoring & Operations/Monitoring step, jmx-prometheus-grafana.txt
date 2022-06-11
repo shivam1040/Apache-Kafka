@@ -1,0 +1,31 @@
+kafka monitoring can be done using jmx exporter(jar to bridge connection between java application metrics and prometheus), prometheus(metrics db), grafana(metrics db query tool)
+
+kafka_2_0_0.yml, this file is required by prometheus and provides entry point to all metrics of kafka
+
+set this env var before starting kafka, KAFKA_OPTS=-javaagent:"C:\Users\SJAISW17\Downloads\jmx_prometheus_javaagent-0.17.0.jar"=8080:"C:\Users\SJAISW17\Downloads\kafka-2_0_0.yml", 
+
+add entry point in prometheus.yml of prometheus config
+
+for multibroker config, add java agent to all the brokers and add the java agent address in prometheus.yml file
+
+
+
+Running a Prometheus monitoring service is the easiest way to ingest and record ZooKeeper's metrics.
+Pre-requisites:
+enable the Prometheus MetricsProvider by setting metricsProvider.className=org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider in the zoo.cfg.
+
+the Port is also configurable by setting metricsProvider.httpPort（the default value:7000）
+
+Add entry point int config of prometheus
+
+
+
+Get suitable dashboard for your grafana and import it, add datasource by pointing it to prometheus address
+
+if necessary change default.ini setting of grafana for security less acess
+
+browse to grafana address, viola
+
+
+
+one can acess prometheus on port 9090 and grafana on 3000

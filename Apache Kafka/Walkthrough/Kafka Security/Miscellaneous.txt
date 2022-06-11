@@ -1,0 +1,57 @@
+echo "ruok" | nc localhost 2181 ; echo, cmd in linux to check if zookeeper is ok
+
+zookeeper.out, kafkabroker.out are respective log files
+ 
+
+openssl req -new -x509 -keyout ca-key -out ca-cert -days 3650
+
+keytool -keystore truststore.jks -alias ca-cert -import -file ca-cert
+
+keytool -keystore keystore.jks -alias host -validity 3650 -genkey -keyalg RSA -ext SAN=dns:localhost
+
+keytool -keystore keystore.jks -alias host -certreq -file ca-req
+
+openssl x509 -req -CA ca-cert -CAkey ca-key -in ca-req -out ca-signed -days 3650 -CAcreateserial
+
+keytool -keystore keystore.jks -alias ca-cert -import -file ca-cert
+
+keytool -keystore keystore.jks -alias host -import -file ca-signed
+
+Add to etc host on acessing system, this is necessary to do when system has no domain and you need to acess via ip and validate hostnam in broker certificate to address given when acessing the broker
+LIN51017059
+
+./kafka-console-producer.sh --bootstrap-server LIN51017059:9093 --topic myTopic --producer.config "/Users/Z00B26K/kafka/config/producer.properties", cmd to create producer
+
+𝟏. 𝐆𝐞𝐧𝐞𝐫𝐚𝐭𝐞 𝐂𝐀 == openssl req -new -x509 -keyout ca-key -out ca-cert -days 3650
+
+𝟐. 𝐂𝐫𝐞𝐚𝐭𝐞 𝐓𝐫𝐮𝐬𝐭𝐬𝐭𝐨𝐫𝐞 == keytool -keystore kafka.zookeeper.truststore.jks -alias ca-cert -import -file ca-cert
+
+𝟑. 𝐂𝐫𝐞𝐚𝐭𝐞 𝐊𝐞𝐲𝐬𝐭𝐨𝐫𝐞 == keytool -keystore kafka.zookeeper.keystore.jks -alias zookeeper -validity 3650 -genkey -keyalg RSA -ext SAN=dns:localhost
+
+𝟒. 𝐂𝐫𝐞𝐚𝐭𝐞 𝐜𝐞𝐫𝐭𝐢𝐟𝐢𝐜𝐚𝐭𝐞 𝐬𝐢𝐠𝐧𝐢𝐧𝐠 𝐫𝐞𝐪𝐮𝐞𝐬𝐭 (𝐂𝐒𝐑) == keytool -keystore kafka.zookeeper.keystore.jks -alias zookeeper -certreq -file ca-request-zookeeper
+
+𝟓. 𝐒𝐢𝐠𝐧 𝐭𝐡𝐞 𝐂𝐒𝐑 == openssl x509 -req -CA ca-cert -CAkey ca-key -in ca-request-zookeeper -out ca-signed-zookeeper -days 3650 -CAcreateserial
+
+𝟔. 𝐈𝐦𝐩𝐨𝐫𝐭 𝐭𝐡𝐞 𝐂𝐀 𝐢𝐧𝐭𝐨 𝐊𝐞𝐲𝐬𝐭𝐨𝐫𝐞 == keytool -keystore kafka.zookeeper.keystore.jks -alias ca-cert -import -file ca-cert
+
+repeat step 1-6 to create self signed certificate, ensure to create CA only once that is step 1
+
+generally kafka listens to ssl on 9093, for ssl setup we need CA(certificate authority), keystore, truststore on client end
+
+kafka-configs.bat --zookeeper localhost:2181 --entity-type users --entity-name admin --alter --add-config "SCRAM-SHA-512=[password=admin123]", cmd to add credentials named admin having sha type password admin123
+
+kafka-configs.bat --zookeeper localhost:2182 --zk-tls-config-file config.properties --entity-type users --entity-name admin --alter --add-config "SCRAM-SHA-512=[password=admin123]", cmd to add credentials named admin having sha type password admin123 using secure port 182 and providing config.properties, refer to handson for this
+
+when sasl and ssl is in picture(multiple brokers connection), server side authentication happens by ssl certificate while client side authentication happens by providing sasl credential and encryption will be established based on tls version specified in server.propeerites, so no keystore requiredon client end for eg producer consumer etc.
+
+kafka-configs.bat --zookeeper localhost:2181 --entity-type users --entity-name producer --alter --add-config "SCRAM-SHA-512=[password=admin123]"
+
+kafka-acls.bat --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:producer --topic myTopic --operation WRITE --operation DESCRIBE --operation DESCRIBECONFIGS, cmd to add permissions for a user named producer to topic myTopic having write, describe, and describeconfigs
+
+kafka-acls.bat --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:consumer --topic myTopic --operation READ --operation DESCRIBE
+
+kafka-acls.bat --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:consumer --group test-consumer-group --operation READ, --group * means access to any group
+
+kafka-acls.bat --authorizer-properties zookeeper.connect=localhost:2181 --list, list all acls in zookeeper
+
+in case zookeeper loses authorizations to topics then one can use sasl type digest mdb, add digest md5 version of super user password to jaas.conf file, restart zookeeper, shell connect to zookeeper, add super user using shell alongwith undigested md5 password used aforementioned, after addition of user one can setAcl for the required topics

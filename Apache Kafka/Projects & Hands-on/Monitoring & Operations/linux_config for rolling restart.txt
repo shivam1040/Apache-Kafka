@@ -1,0 +1,9 @@
+#paste this inside /etc/kafka_discovery in linux env, for rolling restart of cluster
+
+  clusters:
+    cluster-1:
+      broker_list:
+        - "cluster-elb-1:9092"
+      zookeeper: "11.11.11.111:2181,11.11.11.112:2181,11.11.11.113:2181/kafka-1"
+  local_config: #definig default cluster
+    cluster: cluster-1

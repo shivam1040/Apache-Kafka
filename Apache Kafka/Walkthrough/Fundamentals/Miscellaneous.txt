@@ -1,0 +1,226 @@
+Centralised data storage is presence of entity/source of data at only one point
+
+In distributed environment, an entity is divided throughout different sources in parts. Distribution can be either in uniform manner or random. The issue with part distrubtion is that there are chances of one part of entity going down. 
+
+Hence, if entire source copied for mutliple times at different location then it is calle replication, uses a lot of space.
+
+Kafka offers the above distribution mechanisms
+
+Messaging system also offers notification to all the connected services about newly received data
+
+In point to point messaging systems only one receiver can consume a given message, 1 message can be consumed by any one of the receivers. As soon as it is consumed, gets deleted. Message gets stored in queue. In this system, there is no time limit on by when the meesage in queue should be consumed
+
+in publish subscribe messaging system, messages get deleted after a set time
+
+kafka implements publis subscribe system
+
+in a cluster all topics name should be unique
+
+In topic distribution partition wise, partitions gets distributed to brokers in round robin fashion
+
+in kafka replica means backup of partition, if partition is 3 and replication factor is 2 then it means that each partition will have 2 replicas. One will be partition itself and another will be a new replica/backup partition. Replica are created in such a manner that if partition is present in broker 1 then replica will be present in broker 2(different broker)
+
+Replica comes in picture when a partition or broker is down, meanwhile user cannot read/write data replica if it corresponding partition is up
+
+Producers are the applications who produce messages to topics/partitions. When message is produced at topic level then it means the partitions of topic will receive the message in round robin fashion. Suppose two partitions are there, message 1 will be recieved by partition 1 and message 2 by partition 2, message 3 by partition 1 and so on
+
+the above is applicaple for consumers also both at topic and partition level
+
+COnsumer group is essentially used for increasing throughput on the consumer end
+
+Consumers groups are the one who are intereste in a songle type of data
+
+Brokers manage the topic and messages present in topic
+
+Brokers manages the consumer in a manner that a given consumer has consumed particular quantity of meesages from a partition of topic and number of messages remaining in form of consumer offsets
+
+In kafka cluster more brokers can be added without downtime ensuring horizontal scalability
+
+Zookeper manages cluster's health
+
+In kafka cluster one of the brokers is a controller broker decidded by zookeper
+
+set of zookepers managing clusters known as zookeper cluster
+
+kafka features fault tolerance by replication
+
+in kafak throughput means number of messages read/write per second in kafka cluster. Throughput is available on both ends producer, consumer
+
+in kafka no data loss due to distributed nature
+
+kafka is written in java and scala
+
+by defult zookeper picks up zoo.cfg from conf directory for starting the zookeeper
+
+in windows 11 for kafka add c/window/system32/wbem to path of environment variable and store binary files in root of c
+
+kafka server uses server.properties from config directory
+
+kafkaserver-start.sh -daemon /config/server.properties, will start the kafka server in background
+
+kafka-topics.bat --bootstrap-server localhost:9092 --create --topic myTopic --partitions 1 --replication-factor 1
+
+above is a command to create kafka topic "myTopic"m bootstrap server gives information about uri of kafka server
+
+kafka-topics.bat --bootstrap-server localhost:9092 --list, cmd to list topics in kafka cluster
+
+kafka-topics.bat --bootstrap-server localhost:9092 --describe --topic myTopic, this will give information about myTopic in descriptive, all the lines below will give information of each partition in the topic
+
+in the above we will get partition wise information like insyn replica Isr, leade, Replicas
+
+in above replicas give information about broker id which containsthe replica
+
+Isr gives information about if replica is in sync with actual data in partition
+
+when extra is created of topic, one of the brokers in cluster becomes leader for the other brokers, this leader broker is responsible for all the read and writes and administrator job, known as controller node, for every partition the leader is elected in round robin function i.e. if partition 1 leader is broker 2 then the replica of partition 1 in broker 2 will acts as leader for read
+write jobs
+
+kafka-console-producer.bat --bootstrap-server localhost:9092 --topic myTopic, this command creates a message producer in mytopic so one can now send messages to topic
+
+kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic myTopic --from-beginning, this command creates a consumer connection in myTopic to consume the messages from beginning, if from tag is not added then next published will be visible not previously stored
+
+if we don't mention consumer group when creating consumer kafka will automatically create a consumer group
+
+kafka-consumer-groups.bat --bootstrap-server localhost:9092 --list, cmd lists the consumer groups in myTopic
+
+kafka-consumer-groups.bat --bootstrap-server localhost:9092 --describe --group console-consumer-5642, cmd to describe console-consumer-5642 consumer group
+
+above will show information about number of messages in log-end-offset heading
+
+kafka cluster internally creates consumer_offsets topic stores information related to consumers when we don't define consumer groups
+
+kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic myTopic --group myConsumerGroup, this consumer will be created in myTopic in group myConsumerGroup
+
+number of nodes in a zookeper cluster should be in odd numbers, makes the leader election process easy
+
+for multi node zookeeper creation, ensure to add id in myid file in storage directory of every node
+
+netstat -aon | find /i "listening", window command to check information about port
+
+number of replication factor can't be more than number of brokers
+
+echo dump | nc localhost 2181, unix command for getting info on brokers and controller broker
+
+kafka-topics.bat --bootstrap-server localhost:9092, localhost:9093, localhost:9094 --create --topic topic02 --partitions 3 --replication-factor 3, creating topic topic02 in any of the given servers
+
+kafka cluster can have multiple nodes by starting multiple servers having different server properties and inforamtion related to servers in each property file
+
+In sync replica works in a manner that if partition 0 receives a message then leader of partition 0 will do the job read/write messages and other brokers containing replica partitions will send fetch request to get the messages from the leader to be in sync
+
+state of the partitions and replica and its transisitions in kafka cluster is managed by controller node
+
+Number of partitions can increase but not decrease, decreasing may cause data loss
+
+kafka-topics.cmd --boostrap-server localhost:9092 --alter --topic test-topic --partitions 2, cmd to alter test-topic topic partition count
+
+kafka-reassign-partitions.cmd --zookeeper <zookeeeper server address> --topics-to-move-json-flie topicMove.json --broker-list "2,3" --generate, cmd to generate json for moving partition from one broker to broker 2, 3  ensure to use json file for configuration {"topics":[{"topic":"<name of topic to move"}],
+"version":1
+}
+
+kafka-reassign-partitions.cmd --zookeeper <zookeeper server address> --reassignment-json-file <location to json file generated by above command> -execute, cmd to move partition from one broker to another, remember leader for partitions will remain the same unless movement is such that the after the movement there is no partition remaining in the current leader
+
+kafka-reassign-partitions.cmd --zookeeper <zookeeper server address> --reassignment-json-file <location to json file generated by above command> -verify, cmd to verify partition movement from one broker to another
+
+to change the replication factor one can edit the generated json above and eecute the command for replication, "replicas":[2, 3]
+
+offsets are basically to keep track of index at which messages are store in partition, this is present at partition level
+
+long end offset even tells us about the number of messages present in a partition
+
+Producer send messages in form of key and payload, key is used when we want to send messages at partition level. When key is null messages get stored in partition in round robin manner else gets stored in particular partition
+
+When broker stores the messages, it stores in partition along with some metadata
+
+Consumer can pull messages at partition level or topic level(in this level, messages will be pulled from all the partitions). How many messages per request we want to pull can be defined in consumer config(max.poll.records=5). When consumer consumes a messages it sends commit response to broker for the particular message
+
+Kafka broker keeps information about consumer groups when sending messages. Current offset refers to offset of last msg send to a consumer group
+
+Committed offset refers to last offset of number of messages consumed, and commited offset can not be greater than current offset
+
+Broker has three way of committing, auto commit-kafka on its own marks if the message is consumed or not acording to last index of poll data, not recommended because if broker goes down then what to commit next information may get lost, similarly if consumer breaks down while consuming commit information will be more than actually consumed; manual commit-consmer sends acknowledgement to boker, moreover manual commit can be done synchronously/asynchronously
+
+In above manual commit has two type-one is to send commit information once all the information has been consumed and another is send acknowledgement as soon as a message gets consumed
+
+Consumer related offsets are stored in a topic named consumer offset
+
+kafka always ensures to not assign a partition to multiple consumers of the same group. hence, no data duplication among consumers
+
+consumer group rebalancing requires two entities, group coordinator and group leader
+
+let's say there are 10 consumer groups connected to kafka cluster, then these groups will be divided among brokers and brokers for each subset of 10 consumer groups are called group coordinator
+
+in rebalancing, after findCoordinator, joingroup request is sent to group coordinator to initiate rebalancing process call to group leader, group leader executes rebalance process, the final information about assignment of partition to consumer is sent to group coordinator, then group coordinator gets asked by all consumer about the new information of partion-consumer after rebalancing by SyncGroup request
+
+In kafka batch size for proucer is in bytes and it is ensured one batch is sent to one partition and then scond batch to scond and so on
+
+in kafka producer, buffer memory is space in ram used for mainly used for batching
+
+producer will keep batching messages until batch size is reached or linger ms time is elapsed
+
+in producer max request size is the max of size of messages/batch sent to kafka cluster, batch size can never be greater than this
+
+kafka-console-producer --bootstrap-server <kafka server address> --topic test --producer.config <location to producer config>, cmd to start producer using config
+
+kafka supports 3 client types, producer, consumer, admin
+
+kafka consumer sends pings in interval to group coordinator to enusre if consumer client can receive the messages or not
+
+Kafka connect is for connection between data source like db and broker, input connect is called source connector internally using producer api and source connect is called sink connector which internally uses consumer api. For compatibility with multiple data source/sinks(file, db, hadoop etc) use kafka connect framework
+
+kafka connect supports message processing and transferring. kafka connect can have multiple worker nodes and scaled horizontally
+
+to find messages from log stored in broker directory, we need topic name, partition number and offset number
+
+index file in broker directory contains offsets(for searching msgs by index); timeindex files in broker direcotory contains timestamp(used for seeing messages accorfding time)
+
+controller broker is the one who first connects to zookeeper, if it fails then the next available broker
+
+in case of rack(many brokers in one region, many region in one cluster), zookeeper randomly creates an order of rack along with its broker, partitions and followers get divided among it in round robin manner, to ensure scalability and fault tolerance
+
+broker containing original partition is leader for that particular partition and follower for partitions if it contains replica of some other partition, follower broker's job is to stay up to date with data in associated partition in its leader broker. if any of the leader for partition fails the next related broker will become leader
+
+zookeeper maintains isr list called isr list for mainting replicas id which are in sync, to check if replica is in sync it checks with offset index and time if it is not too far behind from the leader partition then it gets stored in isr list and the one with lowest difference becomes eleigible for leader in case if leader broker for associated partition breakdown
+
+in case there is no replica id in isr and leader breaks then recent messages will be lost. so to tackle this one can use the concept of commit messages that is producer will receive commit acknowledgement only when all the replica have the message. new leader can be elected and producer can start sending messages from uncommited point
+
+in case minimu insync replicas config has been defined and the actual number is lower than this then producer won't be able to write to topic
+
+producer serializes the messages and batches them in memory buffer before sending to broker
+
+bts of producer, if partition number to store the message is not defined for the message then a class named Mypartitioner can be used which decides partition number at runtime even if this is not defined then kafka will used default partitioning method(round robin)
+
+Producer Buffers help in higthrougput and asynchronous transmission of messages from buffers
+
+if producer batches messages in buffer faster than they can be transmitted to broker then buffers will exhaust and thread keeping track of free buffers will take longer to release lock on buffers and hence thread timeout exception will be thrown. To tackle this increase producer memory
+
+producer can be multi threaded or in multi producer layout
+
+in producer multi threaded mode, threads are safe and each thread may serve one of the processes which needs to fulfilled for transmission of message to broker like serialization, partitioning, batching etc.
+
+in kafka messages get stored after being received in partitions in log segment format
+
+In at least once semantic of kafak, producer needs to receive acknowledgement after sending messages else producer will retry sending the messages because of io thread not receiving any success response, hence there is a possibility of duplication. kafka is by default at least once
+
+in at most once semantic of kafka, there will be no data duplication but chances of losing messages is high since no retries are in picture, this can be achieved by setting producer retries configuration to zero
+
+to enusre no data duplication and data loss(exactly once semantic), set enable.idempotance=true in producer config. in this What happens internally is that, producer instances receive ids from broker and progressively increasing message sequence number for messages, using id and seq number, broker identifies from log if there is any repition in the immediate data or if there's any missing sequence number. This configuration is only applicable when there is producer retry due to no acknowldefgment not in the case if end user itself is sending duplicate messages
+
+to set exactly once on consumer end set isolation.level=read_committed, this will only read a message if it is present in all replicas
+
+Kafka also provides transactional producers that is either all the messages within the same transaction are committed or none of them are saved. to implement transactions, at the the time of topic creation replication factor>=3 and min.insync.replicas>=2. when transaction is in picture idempotance config is automatically enabled, transaction id must always be unique for different producer instance connected to broker
+
+in kafka if consumer group is preswnt with an id and we want to add a consumer to this specific group then we can use group id to associate with the specific consumer group
+
+by setting consumer config auto-offset-reset to earliest, consumer will receive msgs from begining and when set to latest, mesgs after subscription will be received. if this is not defined then msgs will be sent from the index of committed offset
+
+compacted topic aren't applicable for retention properties and used for keeping data in broker for longer time
+
+log of partition is dividd into segements containint records
+
+in log compaction a log has two portions, one is tail and another is head. Head portion is active no modification allowed and tail section is inactive.
+
+Next write in log compaction is the point where new key value records are appended
+
+Compaction cleaner point in log compaction is the point until which compaction has happened and it also divides tail and head section. Tombstone markers are for messages with null value for a key, these messages are considered to be deleted at the time of garbage collection. Delete retention point in log compaction until where the deletion should happen
+
+partition are basically directories of log segemnts, each segment having tail, head and active(non-compacted)   files

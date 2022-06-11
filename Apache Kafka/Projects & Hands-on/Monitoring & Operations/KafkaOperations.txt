@@ -1,0 +1,39 @@
+KAFKA_OPTS=-javaagent:"C:\Users\SJAISW17\Downloads\jmx_prometheus_javaagent-0.17.0.jar"=8080:"C:\Users\SJAISW17\Downloads\kafka-2_0_0.yml" -javaagent:"C:\Users\SJAISW17\Downloads\jolokia-jvm-1.7.1.jar"=host=*
+
+http://localhost:8778/jolokia/read/kafka.controller:type=KafkaController,name=ActiveControllerCount
+
+if jolokia is remote then ensure to configure ssh between broker and jolokia for POST requests from jolokia
+
+for ssh access, one can create random ssh in .ssh folder in linux copy the content of created public key id_rsa.pub to other authorized_keys file of .ssh folder of  devices we want to ssh to
+
+yelp kafka is the tool used to enable automated rolling scripts for kafka brokers, install it on admin server and ensure connection between brokers by using above process.
+
+kafka-rolling-restart --cluster-type kafka.yaml, yelp cmd to begin rolling restart clusters present in kafka.yaml
+
+yelp can be used to rolling restart brokers after updating their config properties
+
+kafak-config script another way to configure brokers
+
+
+
+to generate partition assignment for a given topic, below json file needs to be created
+
+{
+"version":1,
+"topics":[
+{"topic":"topic name in quotes"}
+]
+}
+
+kafka-reassign-partitions.sh --bootstrap-server <address> --topics-to-move-json-file abvovecreated.json --broker-list "comma separated broker ids" --generate, creates partition balance assignment for a topic moving to particular brokers and gives out reassignment configuration, copy the configuration and create a json file
+
+kafka-reassign-partitions.sh --bootstrap-server <address> --reassignment-json-file abvovecreated.json --execute, cmd to run partition rebalancing according to config generated above
+
+
+kafka-reassign-partitions.sh --bootstrap-server <address> --reassignment-json-file abvovecreated.json --verify, cmd to verify the status of above started process
+
+kafka-preferred-replica-election.sh --bootstrap-server <address>, this will reelect leader for replicas, recommended to do after partittion rebalcning
+
+to ease the above step, one may use linkedin kafka tools for minimising the number of steps
+
+step1 upgrade rolling restart using yelp

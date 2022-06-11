@@ -1,0 +1,40 @@
+.avsc is extension of avro schema files
+
+generic record way of avro object from a schema isnot type safe for fields
+
+using apache avro tools one can read data/schema from avro obj
+
+nullable field in avro is union of null and string data type
+
+to create avro schema from java class, one can use Reflection avro to do so
+
+in forward schema compatibility if a field is deleted in v2 version schema which is also present in v1 then v1 should have a default value else it wont be forward compatible
+
+in schema registry naming convntion is topic-value for value schemas and topic-key for key schemas
+
+when producer sends avro bytes to broker then it sends id of schema too, on the consumer end consumer fetched schema by id from registry and get deserialize avro bytes consumed from broker accordingly
+
+kafka-avro-console-producer \
+    --broker-list localhost:9092 --topic test-avro \
+    --property schema.registry.url=http://127.0.0.1:8081 \
+    --property value.schema='{"type":"int"}' , this kind of schema is incompatible upgrade to last created schema so it can't evolve hence schem registry will return erro 409
+
+avro bytes contain avro schema and avro content, same for avro object
+
+but when we use kafkaavroserialize, new schema is registered in registry and schema id is returned which is of 4 bytes
+
+avro contenet is sent to broker and prepended by magic byte(version), by schema id and avro contenet
+
+so eventually in the broker only the schema id is stored along with the messages
+
+local cache is also maintained by schema registry to ensure resiliency
+
+./kafka-avro-console-producer --broker-list localhost:9092 --topic test-avro --property schema.registry.url=http://localhost:8081 --property value.schema='{"type":"record","name":"myrecord","fields":[{"name":"f1","type":"string”}]}’ , cmd to test schema registry using confluent tools and ensure to put protocol too in registry url
+
+
+
+./kafka-avro-console-consumer --topic test-avro --bootstrap-server localhost:9092 --property schema.registry.url=http://localhost:8081 --from-beginning, cmd to test schema registry using confluent tools and ensure to put protocol too in registry url
+
+
+
+./kafka-avro-console-producer --broker-list localhost:9092 --topic test-avro --property schema.registry.url=http://localhost:8081 --property value.schema='{"type":"record","name":"myrecord","fields":[{"name":"f1","type":"string”}, {“name”:”f2”, “type”:”int”, “default”:0}]}’ , evolving schema created above

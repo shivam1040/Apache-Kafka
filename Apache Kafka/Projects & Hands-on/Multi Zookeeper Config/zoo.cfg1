@@ -1,0 +1,48 @@
+# The number of milliseconds of each tick
+tickTime=2000
+# The number of ticks that the initial 
+# synchronization phase can take
+#initLimit*tickTime/1000 gives timeout value for node creation/connection in zookeper cluster
+initLimit=10
+# The number of ticks that can pass between 
+# sending a request and getting an acknowledgement
+#syncLImit*tickTime/1000 give timeout in second for uunsync node to come in sync. if doesn't happen then zookeper will throw out the node
+syncLimit=5
+# the directory where the snapshot is stored.
+# do not use /tmp for storage, /tmp here is just 
+# example sakes.
+#stores data relate to cluster and client(kafka in this case) coonected to it
+dataDir=/tmp/zookeeper
+# the port at which the clients will connect
+clientPort=2181
+# the maximum number of client connections.
+# increase this if you need to handle more clients
+maxClientCnxns=60
+#
+# Be sure to read the maintenance section of the 
+# administrator guide before turning on autopurge.
+#
+# https://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance
+#
+# The number of snapshots to retain in dataDir
+#autopurge.snapRetainCount=3
+# Purge task interval in hours
+# Set to "0" to disable auto purge feature
+#autopurge.purgeInterval=1
+
+## Metrics Providers
+#
+# https://prometheus.io Metrics Exporter
+#metricsProvider.className=org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider
+#metricsProvider.httpHost=0.0.0.0
+#metricsProvider.httpPort=7000
+#metricsProvider.exportJvmInfo=true
+
+#used to enable 4 letter blacklisted commands by zookeper
+4lw.commands.whitelist=*
+
+#nodes communicate with each other using first port and for leader election they use second port i.e 3788
+#1 in server.1 is id which needs to be mentioned in myid file in storage directory of the particular zookeeper node
+server.1=localhost:2788:3788
+server.2=localhost:2888:3888
+server.3=localhost:2988:3988

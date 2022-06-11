@@ -1,0 +1,26 @@
+[	
+	{"type":"record",
+	"namespace":"com.example2",
+	"name":"Address",
+	"doc":"Schema Example""
+	"fields":[
+		{"name:"address", "type":"string", "doc":""},
+		{"name:"pin", "type":"["int", string]", "doc":""}, #pin data type can either be int or string
+		{"name":"type", "type":"enum", "symbols":["RESIDENTIAL", "OFFICE"]} #enums which can take either of values in symbol
+	]},
+
+	{"type":"record",
+	"namespace":"com.example2",
+	"name":"example",
+	"doc":"Schema Example"
+	"fields":[
+		{"name:"first_name", "type":"string", "doc":"customer name"},
+		{"name:"last_name", "type":"string", "doc":""},
+		{"name:"age", "type":"int", "doc":"age of customer in years"},
+		{"name:"height", "type":"float", "doc":""},
+		{"name:"check", "type":"boolean", "default":true, "doc":""}
+		{"name":"customer_emails", "type":"array" ,"items":"string", "default":[]},
+		{"name:"customer_address", "type":"com.example2.Address", "doc":""} #referring to record created above by its full name
+	]}
+]
+		

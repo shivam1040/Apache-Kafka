@@ -1,0 +1,5 @@
+ssl/tls essentially creates tunnel between receiver/sender for secure data transfer
+
+ssl prevents replay attacks(repeating a packet by copying a packet executing the same packet for request/response) by adding sequence number to packet, once the receiver/sender get this packet it logs the sequence number for particular request henceforth consequent reuqest from the same packet with same sequence number is discarded
+
+CN in the certificate defines the commn dfomain name like *google.com-so this cert is valid for every subomain of google.cim
